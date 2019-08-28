@@ -52,7 +52,7 @@ def missing(version):
 
   print("Checking branch %s" % bname)
 
-  subprocess.check_output(['git', 'checkout', bname])
+  subprocess.check_output(['git', 'checkout', bname], stderr=nowhere)
 
   sdb = sqlite3.connect(stabledb(version))
   cs = sdb.cursor()
