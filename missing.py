@@ -6,6 +6,7 @@ import operator
 import os
 import re
 import subprocess
+import sys
 import sqlite3
 
 from config import stable_path, stable_branches
@@ -86,8 +87,13 @@ def missing(version):
   sdb.close()
 
 def findmissing():
+  if len(sys.argv) > 1:
+    branches = sys.argv[1:]
+  else:
+    branches = stable_branches
+
   os.chdir(stable_path)
-  for b in stable_branches:
+  for b in branches:
     missing(b)
 
 findmissing()
