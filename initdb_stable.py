@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-
 # -*- coding: utf-8 -*-"
+
 import sqlite3
 import os
 import re
 import subprocess
-import time
 from config import stable_path, stable_branches
 from common import workdir, stabledb, stable_branch, createdb
 
