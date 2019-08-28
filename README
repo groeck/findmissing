@@ -1,7 +1,7 @@
 findmissing - find missing commits in stable releases
 
-To initialize, run "sh setup.sh" once.
+To initialize, run "setup.sh" once.
 
-Subsequently, run "python initdb.py", which will update the databases.
-Run "python missing.py" to get a list of commits missing from stable
+Subsequently, run "initdb.py", which will update the databases.
+Then run "missing.py" to get a list of commits missing from stable
 releases.
