@@ -1,5 +1,4 @@
-common.pyc
-config.pyc
+*.pyc
 __pycache__
 linux-stable
 linux-upstream
