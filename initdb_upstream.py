@@ -5,14 +5,14 @@ import re
 import sqlite3
 import subprocess
 from config import upstream_path, stable_branches
-from common import workdir, upstreamdb
+from common import workdir, upstreamdb, createdb
 
 upstream_base = 'v' + stable_branches[0]
 
 rf = re.compile('^\s*Fixes: (?:commit )*([0-9a-f]+).*')
 rdesc = re.compile('.* \("([^"]+)"\).*')
 
-def mktables():
+def mktables(c):
   # Upstream commits
   c.execute("CREATE TABLE commits (sha text, description text)")
   c.execute("CREATE UNIQUE INDEX commit_sha ON commits (sha)")
@@ -42,19 +42,20 @@ def handle(start):
           continue
 
         description = elem[1].rstrip('\n')
-        description = description.decode('latin-1') if isinstance(description, str) else description
+        description = description.decode('latin-1') if not isinstance(description, str) else description
         c.execute("INSERT INTO commits(sha, description) VALUES (?, ?)",
                   (sha, description))
         # check if this patch fixes a previous patch.
         description = subprocess.check_output(['git', 'show', '-s', '--pretty=format:%b', sha])
         for d in description.splitlines():
+          d = d.decode('latin-1') if not isinstance(d, str) else d
           m = rf.search(d)
           fsha=None
           if m and m.group(1):
             try:
               # Normalize fsha to 12 characters.
               cmd = 'git show -s --pretty=format:%%H %s 2>/dev/null' % m.group(1)
-              fsha = subprocess.check_output(cmd, shell=True)
+              fsha = subprocess.check_output(cmd, shell=True).decode()
             except:
               print("Commit '%s' for SHA '%s': Not found" % (m.group(0), sha))
               m=rdesc.search(d)
@@ -76,7 +77,7 @@ def handle(start):
             # Calculate patch ID for fixing commit.
             ps = subprocess.Popen(['git', 'show', sha], stdout=subprocess.PIPE)
             spid = subprocess.check_output(['git', 'patch-id'], stdin=ps.stdout)
-            patchid = spid.split(" ", 1)[0]
+            patchid = spid.decode().split(' ', 1)[0]
 
             # Insert in reverse order: sha is fixed by fsha.
             # patchid is the patch ID associated with fsha (in the database).
