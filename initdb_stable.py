@@ -13,16 +13,6 @@ cherrypick=re.compile("cherry picked from (commit )+([a-z0-9]+)")
 stable=re.compile("(commit )+([a-z0-9]+) upstream")
 stable2=re.compile("Upstream (commit )+([a-z0-9]+)")
 
-def removedb(file):
-  '''
-  remove file if it exists
-  '''
-
-  try:
-    os.remove(file)
-  except OSError:
-    pass
-
 def mktable(c):
   '''
   Create database table
@@ -50,16 +40,16 @@ def update_commits(start, db):
   last = None
   for commit in commits.splitlines():
     if commit != "":
-      elem = commit.split(" ", 1)
+      elem = commit.decode().split(" ", 1)
       sha = elem[0]
       description = elem[1].rstrip('\n')
       description = description.decode('latin-1') \
-                  if isinstance(description, str) else description
+                  if not isinstance(description, str) else description
 
       ps = subprocess.Popen(['git', 'show', sha], stdout=subprocess.PIPE)
       spid = subprocess.check_output(['git', 'patch-id', '--stable'],
                                      stdin=ps.stdout)
-      patchid = spid.split(" ", 1)[0]
+      patchid = spid.decode().split(" ", 1)[0]
 
       # Do nothing if the sha is already in the database
       c.execute("select sha from commits where sha='%s'" % sha)
@@ -74,6 +64,7 @@ def update_commits(start, db):
       usha=""
       desc = subprocess.check_output(['git', 'show', '-s', sha])
       for d in desc.splitlines():
+        d = d.decode() if not isinstance(d, str) else d
         m = cherrypick.search(d)
         if not m:
           m = stable.search(d)
