@@ -9,9 +9,9 @@ from config import stable_path, stable_branches
 from common import workdir, stabledb, stable_branch, createdb
 
 # "commit" is sometimes seen multiple times, such as with commit 6093aabdd0ee
-cherrypick=re.compile("cherry picked from (commit )+([a-z0-9]+)")
-stable=re.compile("^\s*(commit )+([a-z0-9]+) upstream")
-stable2=re.compile("^\s*\[\s*Upstream (commit )+([a-z0-9]+)\s*\]")
+cherrypick=re.compile("cherry picked from (commit )+([0-9a-f]+)")
+stable=re.compile("^\s*(commit )+([0-9a-f]+) upstream")
+stable2=re.compile("^\s*\[\s*Upstream (commit )+([0-9a-f]+)\s*\]")
 
 def mktable(c):
   '''
