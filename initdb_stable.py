@@ -10,8 +10,8 @@ from common import workdir, stabledb, stable_branch, createdb
 
 # "commit" is sometimes seen multiple times, such as with commit 6093aabdd0ee
 cherrypick=re.compile("cherry picked from (commit )+([a-z0-9]+)")
-stable=re.compile("(commit )+([a-z0-9]+) upstream")
-stable2=re.compile("Upstream (commit )+([a-z0-9]+)")
+stable=re.compile("^\s*(commit )+([a-z0-9]+) upstream")
+stable2=re.compile("^\s*\[\s*Upstream (commit )+([a-z0-9]+)\s*\]")
 
 def mktable(c):
   '''
