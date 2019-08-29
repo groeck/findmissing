@@ -19,7 +19,7 @@ def mktables(c):
 
   # Fixes associated with upstream commits. sha is the commit, fsha is its fix.
   # Each sha may have multiple fixes associated with it.
-  c.execute("CREATE TABLE fixes (sha text, fsha text, patchid text)")
+  c.execute("CREATE TABLE fixes (sha text, fsha text, patchid text, ignore integer)")
   c.execute("CREATE INDEX sha ON fixes (sha)")
 
 def handle(start):
@@ -81,8 +81,8 @@ def handle(start):
 
             # Insert in reverse order: sha is fixed by fsha.
             # patchid is the patch ID associated with fsha (in the database).
-            c.execute("INSERT into fixes (sha, fsha, patchid) VALUES (?, ?, ?)",
-                      (fsha[0:12], sha, patchid))
+            c.execute("INSERT into fixes (sha, fsha, patchid, ignore) VALUES (?, ?, ?, ?)",
+                      (fsha[0:12], sha, patchid, 0))
 
   if last:
     c.execute("UPDATE tip set sha='%s' where ref=1" % last)
