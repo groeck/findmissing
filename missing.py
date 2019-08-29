@@ -62,8 +62,11 @@ def missing(version):
 
   cs.execute("select sha, usha, description from commits where usha != ''")
   for (sha, usha, description) in cs.fetchall():
-    cu.execute("select fsha, patchid from fixes where sha='%s'" % usha)
-    for (fsha, patchid) in cu.fetchall():
+    cu.execute("select fsha, patchid, ignore from fixes where sha='%s'" % usha)
+    for (fsha, patchid, ignore) in cu.fetchall():
+      # If a patch is in the fixes database but marked as 'ignore', skip it.
+      if ignore:
+        continue
       # print("SHA %s ('%s') fixed by %s" % (sha, description, fsha))
       cs.execute("select sha, usha from commits where usha is '%s'" % fsha)
       fix=cs.fetchone()
