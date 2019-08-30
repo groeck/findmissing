@@ -40,7 +40,7 @@ def update_commits(start, db):
   last = None
   for commit in commits.splitlines():
     if commit != "":
-      elem = commit.decode().split(" ", 1)
+      elem = commit.decode('latin-1').split(" ", 1)
       sha = elem[0]
       description = elem[1].rstrip('\n')
       description = description.decode('latin-1') \
@@ -49,7 +49,7 @@ def update_commits(start, db):
       ps = subprocess.Popen(['git', 'show', sha], stdout=subprocess.PIPE)
       spid = subprocess.check_output(['git', 'patch-id', '--stable'],
                                      stdin=ps.stdout)
-      patchid = spid.decode().split(" ", 1)[0]
+      patchid = spid.decode('latin-1').split(" ", 1)[0]
 
       # Do nothing if the sha is already in the database
       c.execute("select sha from commits where sha='%s'" % sha)
@@ -64,7 +64,7 @@ def update_commits(start, db):
       usha=""
       desc = subprocess.check_output(['git', 'show', '-s', sha])
       for d in desc.splitlines():
-        d = d.decode() if not isinstance(d, str) else d
+        d = d.decode('latin-1') if not isinstance(d, str) else d
         m = cherrypick.search(d)
         if not m:
           m = stable.search(d)
