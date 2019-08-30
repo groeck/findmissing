@@ -8,8 +8,14 @@ upstreamdb = dbdir + '/upstream.db'
 def stabledb(version):
   return dbdir + "/stable-" + version + '.db'
 
+def chromeosdb(version):
+  return dbdir + "/chromeos-" + version + '.db'
+
 def stable_branch(version):
     return "linux-%s.y" % version
+
+def chromeos_branch(version):
+    return "chromeos-%s" % version
 
 def doremove(file):
   '''

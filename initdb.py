@@ -2,6 +2,8 @@
 
 from initdb_upstream import update_upstreamdb
 from initdb_stable import update_stabledb
+from initdb_chromeos import update_chromeosdb
 
 update_upstreamdb()
 update_stabledb()
+update_chromeosdb()
