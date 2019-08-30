@@ -44,6 +44,48 @@ def get_status(sha):
 
   return ret
 
+def getcontext(bname, sdb, udb, usha, recursive):
+  cs = sdb.cursor()
+  cu = udb.cursor()
+
+  cu.execute("select sha, description from commits where sha is '%s'" % usha)
+  found = False
+  for (sha, description) in cu.fetchall():
+    # usha -> sha maping should be 1:1
+    # If it isn't, skip duplicate entries.
+    if found:
+      print("hmm")
+      continue
+    found = True
+    cu.execute("select fsha, patchid, ignore from fixes where sha='%s'" % usha)
+    # usha, however, may have multiple fixes
+    printed = recursive
+    for (fsha, patchid, ignore) in cu.fetchall():
+      if ignore:
+        continue
+      # Check if the fix (fsha) is in our code base
+      cs.execute("select sha, usha from commits where usha is '%s'" % fsha)
+      fix=cs.fetchone()
+      if not fix:
+        # The fix is not in our code base. Try to find it using its patch ID.
+        # print(" SHA %s not found, trying patch ID based lookup" % fsha)
+        cs.execute("select sha, usha from commits where patchid is '%s'" % patchid)
+        fix=cs.fetchone()
+        if not fix:
+          status = get_status(fsha)
+          if status != 0:
+            if not printed:
+              print("SHA %s [%s] ('%s')" % (sha, usha, description))
+              printed = True
+            str = "    " if recursive else "  "
+            print("%sFixed by commit %s" % (str, fsha))
+            if status == 1:
+              print("  %sFix is missing from %s and applies cleanly" % (str, bname))
+            else:
+              print("  %sFix may be missing from %s; trying to apply it results in conflicts/errors" %
+                    (str, bname))
+            getcontext(bname, sdb, udb, fsha, True)
+
 def missing(version):
   """
   Look for missing Fixup commits in provided stable release
@@ -60,31 +102,9 @@ def missing(version):
   udb = sqlite3.connect(upstreamdb)
   cu = udb.cursor()
 
-  cs.execute("select sha, usha, description from commits where usha != ''")
-  for (sha, usha, description) in cs.fetchall():
-    cu.execute("select fsha, patchid, ignore from fixes where sha='%s'" % usha)
-    for (fsha, patchid, ignore) in cu.fetchall():
-      # If a patch is in the fixes database but marked as 'ignore', skip it.
-      if ignore:
-        continue
-      # print("SHA %s ('%s') fixed by %s" % (sha, description, fsha))
-      cs.execute("select sha, usha from commits where usha is '%s'" % fsha)
-      fix=cs.fetchone()
-      if not fix:
-        # The fix is not in our code base. Try to find it using its patch ID.
-        # print(" SHA %s not found, trying patch ID based lookup" % fsha)
-        cs.execute("select sha, usha from commits where patchid is '%s'" % patchid)
-        fix=cs.fetchone()
-        if not fix:
-          status = get_status(fsha)
-          if status != 0:
-            print("SHA %s [%s] ('%s')" % (sha, usha, description))
-            print("  fixed by upstream commit %s" % fsha)
-            if status == 1:
-              print("  Fix is missing from %s and applies cleanly" % bname)
-            else:
-              print("  Fix may be missing from %s; trying to apply it results in conflicts/errors" %
-                    bname)
+  cs.execute("select usha from commits where usha != ''")
+  for (usha) in cs.fetchall():
+    getcontext(bname, sdb, udb, usha[0], False)
 
   udb.close()
   sdb.close()
