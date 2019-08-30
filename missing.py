@@ -9,8 +9,8 @@ import subprocess
 import sys
 import sqlite3
 
-from config import stable_path, stable_branches
-from common import workdir, stabledb, upstreamdb, stable_branch
+from config import chromeos_path, chromeos_branches
+from common import workdir, chromeosdb, upstreamdb, chromeos_branch
 
 nowhere = open('/dev/null', 'w')
 
@@ -88,16 +88,16 @@ def getcontext(bname, sdb, udb, usha, recursive):
 
 def missing(version):
   """
-  Look for missing Fixup commits in provided stable release
+  Look for missing Fixup commits in provided chromeos release
   """
 
-  bname = stable_branch(version)
+  bname = chromeos_branch(version)
 
   print("Checking branch %s" % bname)
 
   subprocess.check_output(['git', 'checkout', bname], stderr=nowhere)
 
-  sdb = sqlite3.connect(stabledb(version))
+  sdb = sqlite3.connect(chromeosdb(version))
   cs = sdb.cursor()
   udb = sqlite3.connect(upstreamdb)
   cu = udb.cursor()
@@ -113,9 +113,9 @@ def findmissing():
   if len(sys.argv) > 1:
     branches = sys.argv[1:]
   else:
-    branches = stable_branches
+    branches = chromeos_branches
 
-  os.chdir(stable_path)
+  os.chdir(chromeos_path)
   for b in branches:
     missing(b)
 
