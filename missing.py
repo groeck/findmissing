@@ -78,7 +78,7 @@ def getcontext(bname, sdb, udb, usha, recursive):
               print("SHA %s [%s] ('%s')" % (sha, usha, description))
               printed = True
             str = "    " if recursive else "  "
-            print("%sFixed by commit %s" % (str, fsha))
+            print("%sCommit %s fixed by commit %s" % (str, usha, fsha))
             if status == 1:
               print("  %sFix is missing from %s and applies cleanly" % (str, bname))
             else:
