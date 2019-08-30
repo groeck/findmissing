@@ -49,7 +49,7 @@ def update_commits(start, cdb, sdb):
   last = None
   for commit in commits.splitlines():
     if commit != "":
-      elem = commit.decode().split(" ", 1)
+      elem = commit.decode('latin-1').split(" ", 1)
       sha = elem[0]
       description = elem[1].rstrip('\n')
       description = description.decode('latin-1') \
@@ -58,7 +58,7 @@ def update_commits(start, cdb, sdb):
       ps = subprocess.Popen(['git', 'show', sha], stdout=subprocess.PIPE)
       spid = subprocess.check_output(['git', 'patch-id', '--stable'],
                                      stdin=ps.stdout)
-      patchid = spid.decode().split(" ", 1)[0]
+      patchid = spid.decode('latin-1').split(" ", 1)[0]
 
       # Do nothing if sha is in stable database
       sc.execute("select sha from commits where sha='%s'" % sha)
@@ -81,7 +81,7 @@ def update_commits(start, cdb, sdb):
         u = upstream.match(description)
         desc = subprocess.check_output(['git', 'show', '-s', sha])
         for d in desc.splitlines():
-          d = d.decode() if not isinstance(d, str) else d
+          d = d.decode('latin-1') if not isinstance(d, str) else d
           m = cherrypick.search(d)
           if not m:
             m = stable.search(d)
