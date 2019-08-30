@@ -31,7 +31,7 @@ def handle(start):
                                        '--no-merges', '--reverse', start+'..'])
   for commit in commits.splitlines():
     if commit != "":
-        elem = commit.decode().split(' ', 1)
+        elem = commit.decode('latin-1').split(' ', 1)
         sha = elem[0]
         last = sha
 
@@ -55,7 +55,7 @@ def handle(start):
             try:
               # Normalize fsha to 12 characters.
               cmd = 'git show -s --pretty=format:%%H %s 2>/dev/null' % m.group(1)
-              fsha = subprocess.check_output(cmd, shell=True).decode()
+              fsha = subprocess.check_output(cmd, shell=True).decode('latin-1')
             except:
               print("Commit '%s' for SHA '%s': Not found" % (m.group(0), sha))
               m=rdesc.search(d)
@@ -77,7 +77,7 @@ def handle(start):
             # Calculate patch ID for fixing commit.
             ps = subprocess.Popen(['git', 'show', sha], stdout=subprocess.PIPE)
             spid = subprocess.check_output(['git', 'patch-id'], stdin=ps.stdout)
-            patchid = spid.decode().split(' ', 1)[0]
+            patchid = spid.decode('latin-1').split(' ', 1)[0]
 
             # Insert in reverse order: sha is fixed by fsha.
             # patchid is the patch ID associated with fsha (in the database).
