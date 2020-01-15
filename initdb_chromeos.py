@@ -38,9 +38,11 @@ def update_commits(start, cdb, sdb):
   '''
 
   conn = sqlite3.connect(cdb)
+  conn.text_factory = str
   c = conn.cursor()
 
   sconn = sqlite3.connect(sdb)
+  sconn.text_factory = str
   sc = sconn.cursor()
 
   commits = subprocess.check_output(['git', 'log', '--no-merges', '--abbrev=12',
@@ -49,16 +51,13 @@ def update_commits(start, cdb, sdb):
   last = None
   for commit in commits.splitlines():
     if commit != "":
-      elem = commit.decode('latin-1').split(" ", 1)
+      elem = commit.split(" ", 1)
       sha = elem[0]
       description = elem[1].rstrip('\n')
-      description = description.decode('latin-1') \
-                  if not isinstance(description, str) else description
-
       ps = subprocess.Popen(['git', 'show', sha], stdout=subprocess.PIPE)
       spid = subprocess.check_output(['git', 'patch-id', '--stable'],
                                      stdin=ps.stdout)
-      patchid = spid.decode('latin-1').split(" ", 1)[0]
+      patchid = spid.split(" ", 1)[0]
 
       # Do nothing if sha is in stable database
       sc.execute("select sha from commits where sha='%s'" % sha)
@@ -81,7 +80,6 @@ def update_commits(start, cdb, sdb):
         u = upstream.match(description)
         desc = subprocess.check_output(['git', 'show', '-s', sha])
         for d in desc.splitlines():
-          d = d.decode('latin-1') if not isinstance(d, str) else d
           m = cherrypick.search(d)
           if not m:
             m = stable.search(d)
@@ -116,6 +114,8 @@ def update_chromeosdb():
 
     try:
       conn = sqlite3.connect(cdb)
+      conn.text_factory = str
+
       c = conn.cursor()
       c.execute("select sha from tip")
       sha = c.fetchone()
