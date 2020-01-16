@@ -24,6 +24,7 @@ def mktables(c):
 
 def handle(start):
   conn = sqlite3.connect(upstreamdb)
+  conn.text_factory = str
   c = conn.cursor()
   c2 = conn.cursor()
 
@@ -31,7 +32,7 @@ def handle(start):
                                        '--no-merges', '--reverse', start+'..'])
   for commit in commits.splitlines():
     if commit != "":
-        elem = commit.decode().split(' ', 1)
+        elem = commit.split(' ', 1)
         sha = elem[0]
         last = sha
 
@@ -42,20 +43,20 @@ def handle(start):
           continue
 
         description = elem[1].rstrip('\n')
-        description = description.decode('latin-1') if not isinstance(description, str) else description
+        description = description if not isinstance(description, str) else description
         c.execute("INSERT INTO commits(sha, description) VALUES (?, ?)",
                   (sha, description))
         # check if this patch fixes a previous patch.
         description = subprocess.check_output(['git', 'show', '-s', '--pretty=format:%b', sha])
         for d in description.splitlines():
-          d = d.decode('latin-1') if not isinstance(d, str) else d
+          d = d if not isinstance(d, str) else d
           m = rf.search(d)
           fsha=None
           if m and m.group(1):
             try:
               # Normalize fsha to 12 characters.
               cmd = 'git show -s --pretty=format:%%H %s 2>/dev/null' % m.group(1)
-              fsha = subprocess.check_output(cmd, shell=True).decode()
+              fsha = subprocess.check_output(cmd, shell=True)
             except:
               print("Commit '%s' for SHA '%s': Not found" % (m.group(0), sha))
               m=rdesc.search(d)
@@ -77,7 +78,7 @@ def handle(start):
             # Calculate patch ID for fixing commit.
             ps = subprocess.Popen(['git', 'show', sha], stdout=subprocess.PIPE)
             spid = subprocess.check_output(['git', 'patch-id'], stdin=ps.stdout)
-            patchid = spid.decode().split(' ', 1)[0]
+            patchid = spid.split(' ', 1)[0]
 
             # Insert in reverse order: sha is fixed by fsha.
             # patchid is the patch ID associated with fsha (in the database).
@@ -97,6 +98,7 @@ def update_upstreamdb():
     # see if we previously handled anything. If yes, use it.
     # Otherwise re-create database
     conn = sqlite3.connect(upstreamdb)
+    conn.text_factory = str
     c = conn.cursor()
     c.execute("select sha from tip")
     sha = c.fetchone()
