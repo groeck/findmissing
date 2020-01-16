@@ -30,7 +30,9 @@ def get_status(sha):
   os.system("git reset --hard HEAD > /dev/null 2>&1")
 
   try:
-    result = subprocess.check_output(['git', 'cherry-pick', '-n', sha], stderr=nowhere)
+    # Returns 0 on success, else a non-zero status code
+    result = subprocess.call(['git', 'cherry-pick', '-n', sha], stderr=nowhere)
+
     if result:
       ret = 2
     else:
